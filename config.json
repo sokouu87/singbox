@@ -554,6 +554,10 @@
                 "outbound": "Ⓜ️ 微软服务"
             },
             {
+                "rule_set": "geosite-japan",
+                "outbound": "🇯🇵 日本节点"
+            },
+            {
                 "rule_set": "geosite-geolocation-!cn",
                 "outbound": "🚀 节点选择"
             },
@@ -662,6 +666,13 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/microsoft.srs",
+                "download_detour": "🎯 全球直连"
+            },
+            {
+                "tag": "geosite-japan",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://github.com/sokouu87/singbox/raw/main/japan.srs",
                 "download_detour": "🎯 全球直连"
             },
             {
