@@ -519,10 +519,6 @@
                 "outbound": "📲 电报消息"
             },
             {
-                "rule_set": "geosite-tiktok",
-                "outbound": "🎵 TikTok"
-            },
-            {
                 "rule_set": [
                     "geoip-netflix",
                     "geosite-netflix"
