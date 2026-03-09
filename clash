@@ -1,0 +1,196 @@
+# ==========================================================
+# 基础设置
+# ==========================================================
+mixed-port: 20122
+external-controller: 127.0.0.1:20123
+secret: "459ae605a9f69ee6f7225a1025f358180e8b211c892f345a75da960472f16b77"
+allow-lan: true
+mode: rule
+log-level: info
+ipv6: false
+unified-delay: true
+
+# TUN 模式配置 (对应 sing-box 的 tun-in)
+tun:
+  enable: true
+  stack: mixed
+  auto-route: true
+  strict-route: true
+  sniff: true
+
+# DNS 配置 (对应 sing-box 的 dns 设置)
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - 223.5.5.5
+    - https://dns.alidns.com/dns-query
+  proxy-server-nameserver:
+    - 223.5.5.5
+  fallback:
+    - tls://8.8.8.8
+    - https://dns.google/dns-query
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+# ==========================================================
+# 1. 订阅嵌入 (Proxy Provider)
+# ==========================================================
+proxy-providers:
+  all_nodes:
+    type: http
+    # 你的订阅地址
+    url: "http://192.168.1.3:3011/1DBv14mWE5EpZJ2KDRAi/download/collection/flzt_nexi?target=clash"
+    interval: 3600
+    path: ./proxies/sub.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: http://www.gstatic.com/generate_204
+
+# ==========================================================
+# 2. 策略组配置 (通过 Filter 自动分类节点)
+# ==========================================================
+proxy-groups:
+  - name: 🚀 节点选择
+    type: select
+    use: [all_nodes]
+    proxies:
+      - 🎈 自动选择
+      - DIRECT
+
+  - name: ✦ Gemini
+    type: select
+    use: [all_nodes]
+    filter: "(?i)美国|US|Taiwan|台湾|tw"
+    proxies:
+      - 🚀 节点选择
+
+  - name: 📢  Google
+    type: select
+    use: [all_nodes]
+    filter: "(?i)香港|HK|美国|US|Taiwan|台湾"
+    proxies:
+      - 🚀 节点选择
+
+  - name: 🍎 Apple
+    type: select
+    use: [all_nodes]
+    filter: "(?i)香港|HK|美国|US"
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: 🎥 Netflix
+    type: select
+    use: [all_nodes]
+    filter: "(?i)香港|HK|美国|US"
+    proxies:
+      - 🚀 节点选择
+
+  - name: 📹 Youtube
+    type: select
+    use: [all_nodes]
+    proxies:
+      - 🚀 节点选择
+
+  - name: ᯤ Spotify
+    type: select
+    use: [all_nodes]
+    filter: "(?i)香港|HK|美国|US"
+    proxies:
+      - 🚀 节点选择
+
+  - name: ✈️ Telegram
+    type: select
+    use: [all_nodes]
+    proxies:
+      - 🚀 节点选择
+
+  - name: 🎈 自动选择
+    type: url-test
+    use: [all_nodes]
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 150
+
+  - name: 🎯 全球直连
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 节点选择
+
+  - name: 🛑 全球拦截
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+      - 🎈 自动选择
+
+  # --- 以下为基于 sing-box 逻辑的细分地区组 ---
+  - name: nexi_🇭🇰
+    type: url-test
+    use: [all_nodes]
+    filter: "(?i)nexi.*(香港|HK)"
+
+  - name: nexi_🇺🇸
+    type: select
+    use: [all_nodes]
+    filter: "(?i)nexi.*(美国|US)"
+
+  - name: nexi_tw
+    type: select
+    use: [all_nodes]
+    filter: "(?i)nexi.*(台湾|TW|🇼🇸)"
+
+  - name: flzt_🇭🇰
+    type: url-test
+    use: [all_nodes]
+    filter: "(?i)flzt.*(香港|HK)"
+
+# ==========================================================
+# 3. 分流规则 (使用内置和远程 Rule Provider)
+# ==========================================================
+rule-providers:
+  google:
+    type: http
+    behavior: domain
+    url: "https://testingcf.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+  telegram:
+    type: http
+    behavior: classical
+    url: "https://testingcf.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegram.yaml
+    interval: 86400
+  netflix:
+    type: http
+    behavior: classical
+    url: "https://testingcf.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/netflix.txt"
+    path: ./ruleset/netflix.yaml
+    interval: 86400
+
+rules:
+  # 对应 sing-box 的 rule 逻辑
+  - RULE-SET,telegram,✈️ Telegram
+  - DOMAIN-KEYWORD,youtube,📹 Youtube
+  - DOMAIN-KEYWORD,google,📢  Google
+  - RULE-SET,google,📢  Google
+  - RULE-SET,netflix,🎥 Netflix
+  - DOMAIN-KEYWORD,spotify,ᯤ Spotify
+  - DOMAIN-KEYWORD,apple,🍎 Apple
+  - GEOIP,CN,🎯 全球直连
+  - MATCH,🐟 漏网之鱼
