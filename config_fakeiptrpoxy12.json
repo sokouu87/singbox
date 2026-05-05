@@ -18,16 +18,14 @@
         "server": "223.5.5.5",
         "server_port": 443,
         "path": "/dns-query",
-        "http_version": "3",
         "detour": "➡️ 直连"
       },
       {
         "tag": "dns_remote",
-        "type": "https",
+        "type": "h3",
         "server": "8.8.8.8",
         "server_port": 443,
         "path": "/dns-query",
-        "http_version": "3",
         "detour": "🚀 节点选择"
       },
       {
