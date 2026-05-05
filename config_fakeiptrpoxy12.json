@@ -8,37 +8,40 @@
     "servers": [
       {
         "tag": "dns_local",
-        "address": "https://223.5.5.5/dns-query",
+        "type": "https",
+        "server": "223.5.5.5",
         "detour": "➡️ 直连"
       },
       {
         "tag": "dns_remote",
-        "address": "h3://8.8.8.8/dns-query",
+        "type": "h3",
+        "server": "8.8.8.8",
         "detour": "🚀 节点选择"
       },
       {
         "tag": "dns_resolver",
-        "address": "udp://223.5.5.5",
+        "type": "udp",
+        "server": "223.5.5.5",
         "detour": "➡️ 直连"
+      },
+      {
+        "tag": "fakeip",
+        "type": "fakeip",
+        "inet4_range": "198.18.0.0/15",
+        "inet6_range": "fc00::/18"
       }
     ],
     "rules": [
-      { "outbound": "any", "server": "dns_resolver" },
-      { "clash_mode": "direct", "server": "dns_local" },
-      { "clash_mode": "global", "server": "fakeip" },
-      { "rule_set": ["geosite-private", "geosite-cn", "custom-direct"], "server": "dns_local" },
-      { "rule_set": ["custom-proxy"], "server": "fakeip" },
-      { "query_type": ["A", "AAAA"], "server": "fakeip", "rewrite_ttl": 1 }
+      { "clash_mode": "direct", "action": "route", "server": "dns_local" },
+      { "clash_mode": "global", "action": "route", "server": "fakeip" },
+      { "rule_set": ["geosite-private", "geosite-cn", "custom-direct"], "action": "route", "server": "dns_local" },
+      { "rule_set": ["custom-proxy"], "action": "route", "server": "fakeip" },
+      { "query_type": ["A", "AAAA"], "action": "route", "server": "fakeip", "rewrite_ttl": 1 }
     ],
     "final": "dns_remote",
     "strategy": "ipv4_only",
-    "independent_cache": true,
     "reverse_mapping": true,
-    "fakeip": {
-      "enabled": true,
-      "inet4_range": "198.18.0.0/15",
-      "inet6_range": "fc00::/18"
-    }
+    "default_domain_resolver": "dns_resolver"
   },
   "inbounds": [
     {
@@ -51,16 +54,16 @@
     }
   ],
   "outbounds": [
-    { 
-      "tag": "🚀 节点选择", 
-      "type": "selector", 
+    {
+      "tag": "🚀 节点选择",
+      "type": "selector",
       "outbounds": ["📦 自建VPS", "🔯 香港自动", "🍨 香港", "🥘 新加坡", "🇨🇳 台湾", "🍣 日本", "🔯 美国自动", "🍔 美国", "🍤 手动切换", "🍖 自动选择", "➡️ 直连"]
     },
-    { 
-      "tag": "📦 自建VPS", 
-      "type": "selector", 
-      "outbounds": ["{all}"], 
-      "filter": [{ "action": "include", "keywords": ["dmit"] }] 
+    {
+      "tag": "📦 自建VPS",
+      "type": "selector",
+      "outbounds": ["{all}"],
+      "filter": [{ "action": "include", "keywords": ["dmit"] }]
     },
     { "tag": "📹 YouTube", "type": "selector", "outbounds": ["🚀 节点选择", "🍖 自动选择", "📦 自建VPS", "➡️ 直连"] },
     { "tag": "🤖 OpenAI", "type": "selector", "outbounds": ["🚀 节点选择", "🍖 自动选择", "📦 自建VPS", "🥘 新加坡", "🍣 日本", "🍔 美国"] },
@@ -76,18 +79,41 @@
     { "tag": "🍏 Apple", "type": "selector", "outbounds": ["📦 自建VPS", "➡️ 直连", "🚀 节点选择"] },
     { "tag": "⏱️ Speedtest", "type": "selector", "outbounds": ["➡️ 直连", "🚀 节点选择"] },
     { "tag": "🕸️ 兜底策略", "type": "selector", "outbounds": ["📦 自建VPS", "🚀 节点选择", "➡️ 直连"] },
-    { "tag": "🍤 手动切换", "type": "selector", "outbounds": ["{all}"]},
+    { "tag": "🍤 手动切换", "type": "selector", "outbounds": ["{all}"] },
     { "tag": "🍨 香港", "type": "selector", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇭🇰|HK|hk|香港|港|HongKong"] }] },
     { "tag": "🇨🇳 台湾", "type": "selector", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇹🇼|TW|tw|台湾|台|TaiWan"] }] },
     { "tag": "🥘 新加坡", "type": "selector", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇸🇬|SG|sg|新加坡|加坡|Singapore"] }] },
     { "tag": "🍣 日本", "type": "selector", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇯🇵|JP|jp|日本|日|Japan"] }] },
     { "tag": "🍔 美国", "type": "selector", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States"] }] },
-    { "tag": "🔯 香港自动", "type": "urltest", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇭🇰|HK|hk|香港|港|HongKong"] }], "url": "https://www.gstatic.com/generate_204", "interval": "10m", "tolerance": 50 },
-    { "tag": "🔯 美国自动", "type": "urltest", "outbounds": ["{all}"], "filter": [{ "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States"] }], "url": "https://www.gstatic.com/generate_204", "interval": "10m", "tolerance": 50 },
-    { "tag": "🍖 自动选择", "type": "urltest", "outbounds": ["{all}"], "filter": [{ "action": "exclude", "keywords": ["网站|地址|剩余|过期|时间|有效"] }], "url": "https://www.gstatic.com/generate_204", "interval": "10m", "tolerance": 50 },
-    { "tag": "GLOBAL", "type": "selector", "outbounds": ["🚀 节点选择", "📦 自建VPS", "➡️ 直连"]},
-    { "tag": "➡️ 直连", "type": "direct" },
-    { "tag": "dns-out", "type": "dns" }
+    {
+      "tag": "🔯 香港自动",
+      "type": "urltest",
+      "outbounds": ["{all}"],
+      "filter": [{ "action": "include", "keywords": ["🇭🇰|HK|hk|香港|港|HongKong"] }],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "tag": "🔯 美国自动",
+      "type": "urltest",
+      "outbounds": ["{all}"],
+      "filter": [{ "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States"] }],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "tag": "🍖 自动选择",
+      "type": "urltest",
+      "outbounds": ["{all}"],
+      "filter": [{ "action": "exclude", "keywords": ["网站|地址|剩余|过期|时间|有效"] }],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    { "tag": "GLOBAL", "type": "selector", "outbounds": ["🚀 节点选择", "📦 自建VPS", "➡️ 直连"] },
+    { "tag": "➡️ 直连", "type": "direct" }
   ],
   "route": {
     "rules": [
@@ -96,10 +122,8 @@
       { "ip_is_private": true, "outbound": "➡️ 直连" },
       { "clash_mode": "direct", "outbound": "➡️ 直连" },
       { "clash_mode": "global", "outbound": "GLOBAL" },
-      
       { "rule_set": "custom-direct", "outbound": "➡️ 直连" },
       { "rule_set": "custom-proxy", "outbound": "🚀 节点选择" },
-
       { "domain_keyword": ["midjourney", "gogemini"], "outbound": "🤖 OpenAI" },
       { "rule_set": ["geosite-chat", "geoip-aibu"], "outbound": "🤖 OpenAI" },
       { "rule_set": "geosite-youtube", "outbound": "📹 YouTube" },
@@ -114,7 +138,6 @@
     "rule_set": [
       { "tag": "custom-proxy", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/sokouu87/singbox/refs/heads/main/proxy.srs" },
       { "tag": "custom-direct", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/sokouu87/singbox/refs/heads/main/direct.srs" },
-
       { "tag": "geosite-chat", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ai-chat-!cn.srs" },
       { "tag": "geosite-youtube", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs" },
       { "tag": "geosite-google", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs" },
