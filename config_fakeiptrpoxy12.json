@@ -15,21 +15,26 @@
       {
         "tag": "dns_local",
         "type": "https",
-        "address": "https://223.5.5.5/dns-query",
+        "server": "223.5.5.5",
+        "server_port": 443,
+        "path": "/dns-query",
         "http_version": "3",
         "detour": "➡️ 直连"
       },
       {
         "tag": "dns_remote",
         "type": "https",
-        "address": "https://8.8.8.8/dns-query",
+        "server": "8.8.8.8",
+        "server_port": 443,
+        "path": "/dns-query",
         "http_version": "3",
         "detour": "🚀 节点选择"
       },
       {
         "tag": "dns_resolver",
         "type": "udp",
-        "address": "223.5.5.5:53",
+        "server": "223.5.5.5",
+        "server_port": 53,
         "detour": "➡️ 直连"
       }
     ],
