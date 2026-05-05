@@ -37,7 +37,8 @@
       { "outbound": "any", "server": "dns_resolver" },
       { "clash_mode": "direct", "server": "dns_local" },
       { "clash_mode": "global", "server": "dns_fakeip" },
-      { "rule_set": ["geosite-private", "geosite-cn"], "server": "dns_local" },
+      { "rule_set": ["geosite-private", "geosite-cn", "custom-direct"], "server": "dns_local" },
+      { "rule_set": ["custom-proxy"], "server": "dns_fakeip" },
       { "query_type": ["A", "AAAA"], "server": "dns_fakeip", "rewrite_ttl": 1 }
     ],
     "final": "dns_remote",
@@ -79,7 +80,7 @@
     { "tag": "🎥 Netflix", "type": "selector", "outbounds": ["🚀 节点选择", "🍖 自动选择", "📦 自建VPS"] },
     { "tag": "🎥 Disney+", "type": "selector", "outbounds": ["🚀 节点选择", "🍖 自动选择", "📦 自建VPS"] },
     { "tag": "🍄 Game", "type": "selector", "outbounds": ["🚀 节点选择", "➡️ 直连", "🍣 日本", "📦 自建VPS"] },
-    { "tag": "📲 Telegram", "type": "selector", "outbounds": ["📦 自建VPS", "🚀 节点选择", "🔯 香港自动", "🔯 美国自动", "自建VPS"] },
+    { "tag": "📲 Telegram", "type": "selector", "outbounds": ["📦 自建VPS", "🚀 节点选择", "🔯 香港自动", "🔯 美国自动"] },
     { "tag": "🍏 Apple", "type": "selector", "outbounds": ["📦 自建VPS", "➡️ 直连", "🚀 节点选择"] },
     { "tag": "⏱️ Speedtest", "type": "selector", "outbounds": ["➡️ 直连", "🚀 节点选择"] },
     { "tag": "🕸️ 兜底策略", "type": "selector", "outbounds": ["📦 自建VPS", "🚀 节点选择", "➡️ 直连"] },
@@ -103,6 +104,10 @@
       { "ip_is_private": true, "outbound": "➡️ 直连" },
       { "clash_mode": "direct", "outbound": "➡️ 直连" },
       { "clash_mode": "global", "outbound": "GLOBAL" },
+      
+      { "rule_set": "custom-direct", "outbound": "➡️ 直连" },
+      { "rule_set": "custom-proxy", "outbound": "🚀 节点选择" },
+
       { "domain_keyword": ["midjourney", "gogemini"], "outbound": "🤖 OpenAI" },
       { "rule_set": ["geosite-chat", "geoip-aibu"], "outbound": "🤖 OpenAI" },
       { "rule_set": "geosite-youtube", "outbound": "📹 YouTube" },
@@ -115,6 +120,9 @@
       { "rule_set": ["geosite-cn", "geoip-cn"], "outbound": "➡️ 直连" }
     ],
     "rule_set": [
+      { "tag": "custom-proxy", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/sokouu87/singbox/refs/heads/main/proxy.srs" },
+      { "tag": "custom-direct", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/sokouu87/singbox/refs/heads/main/direct.srs" },
+
       { "tag": "geosite-chat", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ai-chat-!cn.srs" },
       { "tag": "geosite-youtube", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs" },
       { "tag": "geosite-google", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs" },
