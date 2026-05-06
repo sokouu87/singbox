@@ -2,9 +2,7 @@
   "version": 3,
   "rules": [
     {
-      "domain_keyword": ["4d4y"],
-      "domain": [],
-      "domain_suffix": []
+      "domain_keyword": ["4d4y"]
     }
   ]
 }
