@@ -1,0 +1,33 @@
+name: Compile SRS
+
+on:
+  push:
+    paths:
+      - '*.json'
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download sing-box
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep tag_name | cut -d'"' -f4)
+          wget -qO sing-box.tar.gz "https://github.com/SagerNet/sing-box/releases/download/${LATEST}/sing-box-${LATEST#v}-linux-amd64.tar.gz"
+          tar -xzf sing-box.tar.gz --strip-components=1 "sing-box-${LATEST#v}-linux-amd64/sing-box"
+
+      - name: Compile SRS files
+        run: |
+          for f in *.json; do
+            ./sing-box rule-set compile --output "${f%.json}.srs" "$f"
+          done
+
+      - name: Commit SRS files
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add *.srs
+          git commit -m "Auto compile SRS" || echo "No changes"
+          git push
