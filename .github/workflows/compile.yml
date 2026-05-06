@@ -6,6 +6,12 @@ on:
       - '*.json'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
 jobs:
   compile:
     runs-on: ubuntu-latest
@@ -14,13 +20,20 @@ jobs:
 
       - name: Download sing-box
         run: |
-          LATEST=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep tag_name | cut -d'"' -f4)
-          wget -qO sing-box.tar.gz "https://github.com/SagerNet/sing-box/releases/download/${LATEST}/sing-box-${LATEST#v}-linux-amd64.tar.gz"
-          tar -xzf sing-box.tar.gz --strip-components=1 "sing-box-${LATEST#v}-linux-amd64/sing-box"
+          LATEST=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+          VER=${LATEST#v}
+          echo "Latest version: $LATEST, VER: $VER"
+          wget -qO sing-box.tar.gz "https://github.com/SagerNet/sing-box/releases/download/${LATEST}/sing-box-${VER}-linux-amd64.tar.gz"
+          tar -xzf sing-box.tar.gz
+          mv sing-box-${VER}-linux-amd64/sing-box ./sing-box
+          chmod +x sing-box
+          ./sing-box version
 
       - name: Compile SRS files
         run: |
           for f in *.json; do
+            # 跳过不需要编译的 json（如果有）
+            echo "Compiling $f -> ${f%.json}.srs"
             ./sing-box rule-set compile --output "${f%.json}.srs" "$f"
           done
 
@@ -29,5 +42,4 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add *.srs
-          git commit -m "Auto compile SRS" || echo "No changes"
-          git push
+          git diff --cached --quiet && echo "No changes" || (git commit -m "Auto compile SRS [skip ci]" && git push)
